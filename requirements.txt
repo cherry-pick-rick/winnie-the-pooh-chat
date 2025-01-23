@@ -2,6 +2,6 @@ streamlit
 anthropic
 langchain
 langchain-anthropic
-langchain_community
+langchain-community
 sentence-transformers
 faiss-cpu 
