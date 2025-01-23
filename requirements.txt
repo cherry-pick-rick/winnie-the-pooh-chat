@@ -1,0 +1,6 @@
+streamlit
+anthropic
+langchain
+langchain-anthropic
+sentence-transformers
+faiss-cpu 
