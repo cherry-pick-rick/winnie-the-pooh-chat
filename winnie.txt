@@ -1,62 +1,4 @@
-﻿The Project Gutenberg eBook of Winnie-the-Pooh
-    
-This ebook is for the use of anyone anywhere in the United States and
-most other parts of the world at no cost and with almost no restrictions
-whatsoever. You may copy it, give it away or re-use it under the terms
-of the Project Gutenberg License included with this ebook or online
-at www.gutenberg.org. If you are not located in the United States,
-you will have to check the laws of the country where you are located
-before using this eBook.
-
-Title: Winnie-the-Pooh
-
-Author: A. A. Milne
-
-Illustrator: Ernest H. Shepard
-
-Release date: January 3, 2022 [eBook #67098]
-                Most recently updated: December 31, 2024
-
-Language: English
-
-Original publication: Canada: McClelland & Stewart, Ltd, 1926
-
-Credits: Greg Weeks, Mary Meehan, Iona Vaughan, David T. Jones and the online Distributed Proofreaders Canada team at http://www.pgdpcanada.net
-
-
-*** START OF THE PROJECT GUTENBERG EBOOK WINNIE-THE-POOH ***
-
-The Project Gutenberg eBook of Winnie-the-Pooh, by A. A. Milne
-
-This eBook is for the use of anyone anywhere in the United States and
-most other parts of the world at no cost and with almost no restrictions
-whatsoever. You may copy it, give it away or re-use it under the terms
-of the Project Gutenberg License included with this eBook or online at
-www.gutenberg.org. If you are not located in the United States, you
-will have to check the laws of the country where you are located before
-using this eBook.
-
-Title: Winnie-the-Pooh
-
-Author: A. A. Milne
-
-Illustrator: Ernest H. Shepard
-
-Release Date: January 3, 2022 [eBook #67098]
-[Most recently updated: October 12, 2022]
-
-Language: English
-
-Produced by: Greg Weeks, Mary Meehan, Iona Vaughan, David T. Jones and the
-             online Distributed Proofreaders Canada team at
-             http://www.pgdpcanada.net
-
-*** START OF THE PROJECT GUTENBERG EBOOK WINNIE-THE-POOH ***
-
-
-
-
-
+﻿
                             WINNIE-THE-POOH
 
                             _BY A. A. MILNE_
@@ -4035,5 +3977,3 @@ This website includes information about Project Gutenberg™,
 including how to make donations to the Project Gutenberg Literary
 Archive Foundation, how to help produce our new eBooks, and how to
 subscribe to our email newsletter to hear about new eBooks.
-
-

@@ -1,94 +1,154 @@
+"""
+Streamlit application for chatting with Winnie-the-Pooh characters using the Anthropic API.
+The app uses FAISS for vector similarity search and LangChain for text processing.
+"""
+
 import streamlit as st
+import logging
 from anthropic import Anthropic
-from langchain_anthropic import ChatAnthropic
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 
+logging.basicConfig(
+    level=logging.INFO,
+    filename='app.log',
+    filemode='w',
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 def init_session_state():
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-    if "api_key" not in st.session_state:
-        st.session_state.api_key = None
+    """Initialize Streamlit session state variables with default values."""
+    defaults = {
+        "messages": [],
+        "api_key": None,
+        "vectorstore": None
+    }
+    for key, value in defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
 
-st.set_page_config(page_title="Winnie-the-Pooh Chat", page_icon="🍯")
-init_session_state()
-
-with st.sidebar:
-    st.header("Settings")
-    api_key = st.text_input("Enter Anthropic API Key", type="password")
-    if api_key:
-        st.session_state.api_key = api_key
-
-if not st.session_state.api_key:
-    st.warning("Please enter your Anthropic API Key in the sidebar to continue.")
-    st.stop()
-
-@st.cache_resource
 def load_vectorstore():
-    with open('winnie.txt', 'r') as file:
-        text = file.read()
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,
-        chunk_overlap=50
-    )
-    chunks = text_splitter.split_text(text)
-    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-    return FAISS.from_texts(chunks, embeddings)
+    """
+    Load and cache the vector store for similarity search.
+    
+    Returns:
+        FAISS: Loaded vector store with embedded text chunks
+    """
+    if st.session_state.vectorstore is None:
+        with open('winnie.txt', 'r') as file:
+            text = file.read()
+        chunks = RecursiveCharacterTextSplitter(
+            chunk_size=500,
+            chunk_overlap=50
+        ).split_text(text)
+        embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+        st.session_state.vectorstore = FAISS.from_texts(chunks, embeddings)
+    return st.session_state.vectorstore
 
-vectorstore = load_vectorstore()
-client = Anthropic(api_key=st.session_state.api_key)
-
-def get_relevant_context(query):
-    docs = vectorstore.similarity_search(query, k=2)  # Reduced from 3 to 2 for efficiency
+def get_relevant_context(query, vectorstore):
+    """
+    Retrieve relevant context from the vector store based on query similarity.
+    
+    Args:
+        query (str): User's input query
+        vectorstore (FAISS): Vector store containing embedded text chunks
+    
+    Returns:
+        str: Concatenated relevant text chunks
+    """
+    docs = vectorstore.similarity_search(query, k=2)
     return "\n\n".join(doc.page_content for doc in docs)
 
-SYSTEM_TEMPLATE = """You are a friendly chatbot who speaks in the style of characters from the original 1926 
-Winnie-the-Pooh book by A.A. Milne. Base your responses on this context:
-
-{context}
-
-Only reference events and characters from this original book. Maintain a warm, friendly tone while avoiding any copyrighted content from later works."""
-
-st.title("Chat with Pooh and Friends 🍯")
-st.caption("Based on A.A. Milne's original 1926 public domain work")
-
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-if prompt := st.chat_input("What would you like to discuss?"):
-    st.session_state.messages.append({"role": "user", "content": prompt})
+def process_message(prompt, client, vectorstore):
+    """
+    Process user message and generate AI response using Anthropic's API.
     
-    with st.chat_message("user"):
-        st.markdown(prompt)
+    Args:
+        prompt (str): User's input message
+        client (Anthropic): Initialized Anthropic client
+        vectorstore (FAISS): Vector store for context retrieval
+    
+    Returns:
+        str or None: Generated response or None if error occurs
+    """
+    context = get_relevant_context(prompt, vectorstore)
+    system_prompt = f"""You are one of the characters from this context:
 
-    context = get_relevant_context(prompt)
-    system_prompt = SYSTEM_TEMPLATE.format(context=context)
-    messages = [{"role": "system", "content": system_prompt}] + st.session_state.messages
+    {context}
 
+    Only reference events and characters from this context. Maintain the tone and attitude of the character you are while avoiding any copyrighted content from later works."""
+    
+    logger.info(f"Context: {context[:200]}...")
+    logger.info(f"System prompt: {system_prompt[:200]}...")
+    
+    messages = [{"role": "user", "content": prompt}]
+    
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
         full_response = ""
         
-        stream = client.messages.create(
-            model="claude-3-haiku-20240307",  # Using Legacy Haiku model
-            max_tokens=512,  # Reduced token limit
-            messages=[
-                {"role": m["role"], "content": m["content"]} 
-                for m in messages
-            ],
-            stream=True
-        )
+        try:
+            stream = client.messages.create(
+                model="claude-3-haiku-20240307",
+                max_tokens=1024,
+                system=system_prompt,
+                messages=messages,
+                stream=True
+            )
 
-        for chunk in stream:
-            if chunk.delta.text:
-                full_response += chunk.delta.text
-                message_placeholder.markdown(full_response + "▌")
-        message_placeholder.markdown(full_response)
-    
-    st.session_state.messages.append({"role": "assistant", "content": full_response})
+            for chunk in stream:
+                if chunk.content:
+                    full_response += chunk.content
+                    message_placeholder.markdown(full_response + "▌")
+            
+            message_placeholder.markdown(full_response)
+            logger.info(f"Response length: {len(full_response)}")
+            return full_response
+            
+        except Exception as e:
+            logger.error(f"Error in message processing: {str(e)}")
+            st.error("An error occurred while processing your message. Please try again.")
+            return None
 
-with st.sidebar:
-    st.header("About")
-    st.markdown("Chat with the original 1926 Winnie-the-Pooh book characters.")
+def main():
+    """
+    Main application function that sets up the Streamlit interface and handles the chat flow.
+    """
+    st.set_page_config(page_title="Winnie-the-Pooh Chat", page_icon="🍯")
+    init_session_state()
+
+    st.title("Chat with Pooh and Friends 🍯")
+    st.caption("Based on A.A. Milne's original 1926 public domain work")
+
+    api_key = st.text_input("Enter Anthropic API Key", type="password")
+    if api_key:
+        st.session_state.api_key = api_key
+
+    if not st.session_state.api_key:
+        st.warning("Please enter your Anthropic API Key to continue.")
+        return
+
+    vectorstore = load_vectorstore()
+    client = Anthropic(api_key=st.session_state.api_key)
+
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    if prompt := st.chat_input("What would you like to discuss?"):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        response = process_message(prompt, client, vectorstore)
+        if response:
+            st.session_state.messages.append({"role": "assistant", "content": response})
+
+    with st.sidebar:
+        st.header("About")
+        st.markdown("Chat with the original 1926 Winnie-the-Pooh book characters.")
+
+if __name__ == "__main__":
+    main()

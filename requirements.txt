@@ -3,5 +3,6 @@ anthropic
 langchain
 langchain-anthropic
 langchain-community
+langchain-huggingface
 sentence-transformers
 faiss-cpu 
