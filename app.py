@@ -4,31 +4,40 @@ from langchain_anthropic import ChatAnthropic
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
-import os
+
+def init_session_state():
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+    if "api_key" not in st.session_state:
+        st.session_state.api_key = None
 
 st.set_page_config(page_title="Winnie-the-Pooh Chat", page_icon="🍯")
+init_session_state()
+
+with st.sidebar:
+    st.header("Settings")
+    api_key = st.text_input("Enter Anthropic API Key", type="password")
+    if api_key:
+        st.session_state.api_key = api_key
+
+if not st.session_state.api_key:
+    st.warning("Please enter your Anthropic API Key in the sidebar to continue.")
+    st.stop()
 
 @st.cache_resource
 def load_vectorstore():
     with open('winnie.txt', 'r') as file:
         text = file.read()
-    
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=500,
         chunk_overlap=50
     )
     chunks = text_splitter.split_text(text)
-    
     embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-    vectorstore = FAISS.from_texts(chunks, embeddings)
-    return vectorstore
+    return FAISS.from_texts(chunks, embeddings)
 
 vectorstore = load_vectorstore()
-
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
+client = Anthropic(api_key=st.session_state.api_key)
 
 def get_relevant_context(query):
     docs = vectorstore.similarity_search(query, k=2)  # Reduced from 3 to 2 for efficiency
