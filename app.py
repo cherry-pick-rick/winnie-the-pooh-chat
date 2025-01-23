@@ -31,11 +31,11 @@ if "messages" not in st.session_state:
 client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
 
 def get_relevant_context(query):
-    docs = vectorstore.similarity_search(query, k=3)
+    docs = vectorstore.similarity_search(query, k=2)  # Reduced from 3 to 2 for efficiency
     return "\n\n".join(doc.page_content for doc in docs)
 
 SYSTEM_TEMPLATE = """You are a friendly chatbot who speaks in the style of characters from the original 1926 
-Winnie-the-Pooh book by A.A. Milne. Base your responses on the following relevant context from the original book:
+Winnie-the-Pooh book by A.A. Milne. Base your responses on this context:
 
 {context}
 
@@ -63,8 +63,8 @@ if prompt := st.chat_input("What would you like to discuss?"):
         full_response = ""
         
         stream = client.messages.create(
-            model="claude-3-sonnet-20240229",
-            max_tokens=1024,
+            model="claude-3-haiku-20240307",  # Using Legacy Haiku model
+            max_tokens=512,  # Reduced token limit
             messages=[
                 {"role": m["role"], "content": m["content"]} 
                 for m in messages
@@ -82,6 +82,4 @@ if prompt := st.chat_input("What would you like to discuss?"):
 
 with st.sidebar:
     st.header("About")
-    st.markdown("""
-    This chat app uses content only from the original 1926 Winnie-the-Pooh book, 
-    which entered the public domain in 2022.""")
+    st.markdown("Chat with the original 1926 Winnie-the-Pooh book characters.")
