@@ -132,7 +132,7 @@ def main():
 
 
     # Main content
-    st.image("header.jpg")
+    st.image("assets/header.jpg")
     st.title("A chat with Winnie the Pooh and Friends 🍯")
     st.caption("Based on A.A. Milne's original 1926 public domain work")
     
