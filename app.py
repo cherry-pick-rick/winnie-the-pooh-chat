@@ -74,11 +74,11 @@ def process_message(prompt, client, vectorstore):
         str or None: Generated response or None if error occurs
     """
     context = get_relevant_context(prompt, vectorstore)
-    system_prompt = f"""You are one of the characters from this context:
+    system_prompt = f"""You are one of the characters from this context.:
 
     {context}
 
-    Only reference events and characters from this context. Maintain the tone and attitude of the character you are while avoiding any copyrighted content from later works."""
+    There is a narrator who describes your response. Only reference events and characters from this context. Maintain the tone and attitude of the character you are while avoiding any copyrighted content from later works."""
     
     logger.info(f"Context: {context[:200]}...")
     logger.info(f"System prompt: {system_prompt[:200]}...")
@@ -99,9 +99,10 @@ def process_message(prompt, client, vectorstore):
             )
 
             for chunk in stream:
-                if chunk.content:
-                    full_response += chunk.content
-                    message_placeholder.markdown(full_response + "▌")
+                if chunk.type == "content_block_start" or chunk.type == "content_block_delta":
+                    if hasattr(chunk, "delta") and chunk.delta.text:
+                        full_response += chunk.delta.text
+                        message_placeholder.markdown(full_response + "▌")
             
             message_placeholder.markdown(full_response)
             logger.info(f"Response length: {len(full_response)}")
