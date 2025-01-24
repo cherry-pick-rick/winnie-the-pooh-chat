@@ -1,8 +1,3 @@
-"""
-Streamlit application for chatting with Winnie-the-Pooh characters using the Anthropic API.
-The app uses FAISS for vector similarity search and LangChain for text processing.
-"""
-
 import streamlit as st
 import logging
 from anthropic import Anthropic
@@ -74,14 +69,16 @@ def process_message(prompt, client, vectorstore):
         str or None: Generated response or None if error occurs
     """
     context = get_relevant_context(prompt, vectorstore)
-    system_prompt = f"""Speaking with the user you are one of the characters from this context:
+    system_prompt = f'''Speaking with the user you are one of the characters from this context:
 
     {context}
 
-    First a narrator sets the scene, then you can respond as your character.
     Respond in the first person as the character you are embodying.
-    Only reference events and characters from this context.
-    Maintain the tone and attitude of the character you are while avoiding any copyrighted content from later works."""
+    That response should be in style and tone true to the orginal context.
+    Only reference events and characters from the context.
+    You are not aware of the users previous prompts.
+    You are always speaking to the user.
+    Maintain the tone and attitude of the character you are while avoiding any copyrighted content from later works.'''
     
     logger.info(f"Context: {context[:200]}...")
     logger.info(f"System prompt: {system_prompt[:200]}...")
@@ -95,7 +92,7 @@ def process_message(prompt, client, vectorstore):
         try:
             stream = client.messages.create(
                 model="claude-3-haiku-20240307",
-                max_tokens=1024,
+                max_tokens=2048,
                 system=system_prompt,
                 messages=messages,
                 stream=True
@@ -123,39 +120,42 @@ def main():
     st.set_page_config(page_title="Winnie-the-Pooh Chat", page_icon="🍯")
     init_session_state()
 
-    st.image("header.jpg")  # Adjust width as needed
-    st.title("A Haiku with Winnie the Pooh and Friends 🍯")
-    st.caption("Based on A.A. Milne's original 1926 public domain work")
-
-
+    # Sidebar elements
     with st.sidebar:
-        st.header("About")
-        st.markdown("Chat with the original 1926 Winnie-the-Pooh book characters.")
-        
-        # Move API key input to sidebar
-        api_key = st.text_input("Enter Anthropic API Key", type="password", key="sidebar_api_key")
+        st.markdown("### Settings")
+        api_key = st.text_input("Anthropic API Key", type="password", key="api_key_input")
         if api_key:
             st.session_state.api_key = api_key
+        st.markdown("### About")
+        st.markdown("Chat with the original 1926 Winnie-the-Pooh book characters.")
 
-    if not st.session_state.api_key:
-        st.warning("Please enter your Anthropic API Key in the sidebar to continue.")
+    # Main content
+    st.image("header.jpg")
+    st.title("A Haiku with Winnie the Pooh and Friends 🍯")
+    st.caption("Based on A.A. Milne's original 1926 public domain work")
+    
+    prompt = st.chat_input("What would you like to discuss?", key="chat_input")
+    
+    if prompt and not st.session_state.api_key:
+        st.error("Please enter your Anthropic API Key to continue")
         return
 
     vectorstore = load_vectorstore()
-    client = Anthropic(api_key=st.session_state.api_key)
-
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-    if prompt := st.chat_input("What would you like to discuss?"):
+    
+    if st.session_state.api_key:
+        client = Anthropic(api_key=st.session_state.api_key)
+        
+    # Process new messages
+    if prompt:
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
-
+        
         response = process_message(prompt, client, vectorstore)
         if response:
             st.session_state.messages.append({"role": "assistant", "content": response})
+            # with st.chat_message("assistant"):
+            #     st.markdown(response)
 
 if __name__ == "__main__":
     main()
