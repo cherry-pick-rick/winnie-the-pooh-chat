@@ -37,7 +37,7 @@ def load_vectorstore():
         FAISS: Loaded vector store with embedded text chunks
     """
     if st.session_state.vectorstore is None:
-        with open('winnie.txt', 'r') as file:
+        with open('context/winnie.txt', 'r') as file:
             text = file.read()
         chunks = RecursiveCharacterTextSplitter(
             chunk_size=500,
@@ -74,11 +74,14 @@ def process_message(prompt, client, vectorstore):
         str or None: Generated response or None if error occurs
     """
     context = get_relevant_context(prompt, vectorstore)
-    system_prompt = f"""You are one of the characters from this context.:
+    system_prompt = f"""Speaking with the user you are one of the characters from this context:
 
     {context}
 
-    There is a narrator who describes your response. Only reference events and characters from this context. Maintain the tone and attitude of the character you are while avoiding any copyrighted content from later works."""
+    First a narrator sets the scene, then you can respond as your character.
+    Respond in the first person as the character you are embodying.
+    Only reference events and characters from this context.
+    Maintain the tone and attitude of the character you are while avoiding any copyrighted content from later works."""
     
     logger.info(f"Context: {context[:200]}...")
     logger.info(f"System prompt: {system_prompt[:200]}...")
@@ -120,15 +123,22 @@ def main():
     st.set_page_config(page_title="Winnie-the-Pooh Chat", page_icon="🍯")
     init_session_state()
 
-    st.title("Chat with Pooh and Friends 🍯")
+    st.image("header.jpg")  # Adjust width as needed
+    st.title("A Haiku with Winnie the Pooh and Friends 🍯")
     st.caption("Based on A.A. Milne's original 1926 public domain work")
 
-    api_key = st.text_input("Enter Anthropic API Key", type="password")
-    if api_key:
-        st.session_state.api_key = api_key
+
+    with st.sidebar:
+        st.header("About")
+        st.markdown("Chat with the original 1926 Winnie-the-Pooh book characters.")
+        
+        # Move API key input to sidebar
+        api_key = st.text_input("Enter Anthropic API Key", type="password", key="sidebar_api_key")
+        if api_key:
+            st.session_state.api_key = api_key
 
     if not st.session_state.api_key:
-        st.warning("Please enter your Anthropic API Key to continue.")
+        st.warning("Please enter your Anthropic API Key in the sidebar to continue.")
         return
 
     vectorstore = load_vectorstore()
@@ -146,10 +156,6 @@ def main():
         response = process_message(prompt, client, vectorstore)
         if response:
             st.session_state.messages.append({"role": "assistant", "content": response})
-
-    with st.sidebar:
-        st.header("About")
-        st.markdown("Chat with the original 1926 Winnie-the-Pooh book characters.")
 
 if __name__ == "__main__":
     main()
