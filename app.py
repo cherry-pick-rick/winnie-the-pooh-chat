@@ -127,11 +127,13 @@ def main():
         if api_key:
             st.session_state.api_key = api_key
         st.markdown("### About")
-        st.markdown("Chat with the original 1926 Winnie-the-Pooh book characters.")
+        st.markdown("Chat with the original 1926 Winnie-the-Pooh book characters using Anthropic's Haiku AI.")
+    
+
 
     # Main content
     st.image("header.jpg")
-    st.title("A Haiku with Winnie the Pooh and Friends 🍯")
+    st.title("A chat with Winnie the Pooh and Friends 🍯")
     st.caption("Based on A.A. Milne's original 1926 public domain work")
     
     prompt = st.chat_input("What would you like to discuss?", key="chat_input")

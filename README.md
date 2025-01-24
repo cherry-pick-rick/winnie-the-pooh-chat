@@ -4,17 +4,32 @@ Welcome to a whimsical world where Pooh and friends chitchat right in your brows
 
 ## Features 🌳🐾
 
-- **Streamlit App**: Runs in a tidy web interface. Just type and watch Pooh respond.
+- **Streamlit App**: Runs in a tidy web interface. Just type and watch Pooh and friends respond.
 - **Vector Search**: Finds relevant hunny-sweet text from the original stories.
 - **Anthropic & LangChain**: Handles the chat magic in Pooh’s voice—fluffy and playful.
 
 ## Setup 🔧🍯
 
 1. Clone the repo.
-2. Install the requirements (`pip install -r requirements.txt`).
+2. Install the requirements:
+
+    ```sh
+    pip install -r requirements.txt
+    ```
+
 3. Set your `ANTHROPIC_API_KEY` environment variable or enter it in the app sidebar.
-4. Make sure `winnie.txt` is present.
-5. Run `streamlit run app.py`.
+4. Make sure [winnie.txt] is present in the context folder.
+5. Add Streamlit to your PATH (if not already added):
+
+    ```sh
+    export PATH=$PATH:~/.local/bin
+    ```
+
+6. Run the Streamlit app:
+
+    ```sh
+    streamlit run app.py
+    ```
 
 ## Enjoy 🎉🐝
 
