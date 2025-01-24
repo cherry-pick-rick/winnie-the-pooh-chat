@@ -2,7 +2,7 @@
 
 Welcome to a whimsical world where Pooh and friends chitchat right in your browser. This little app uses clever AI embeddings and a vector store to fetch the sweetest snippets from the 1926 classic tales—just the sort of friendly advice Pooh might have up his sleeve!
 
-### See in action [here](https://winnie-the-pooh-chat.streamlit.app/)!
+### See it in action [here](https://winnie-the-pooh-chat.streamlit.app/)! 🎬 
 
 ## Features 🌳🐾
 
