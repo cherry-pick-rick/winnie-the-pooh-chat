@@ -4,7 +4,7 @@ Welcome to a whimsical world where Pooh and friends chitchat right in your brows
 
 ### See it in action [here](https://winnie-the-pooh-chat.streamlit.app/)! 😀
 
-![🎬 Example Vid](assets/example.webm)
+![Example Video](https://raw.githubusercontent.com/cherry-pick-rick/winnie-the-pooh-chat/main/assets/example.webm)
 
 ## Features 🌳🐾
 
